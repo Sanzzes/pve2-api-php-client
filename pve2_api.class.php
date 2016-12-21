@@ -75,21 +75,24 @@ class PVE2_API {
 		$login_postfields['password'] = $this->password;
 		$login_postfields['realm'] = $this->realm;
 
-		$login_postfields_string = http_build_query($login_postfields);
-		unset($login_postfields);
+        $login_postfields = http_build_query($login_postfields);
 
 		// Perform login request.
 		$prox_ch = curl_init();
 		curl_setopt($prox_ch, CURLOPT_URL, "https://{$this->hostname}:{$this->port}/api2/json/access/ticket");
-		curl_setopt($prox_ch, CURLOPT_POST, true);
-		curl_setopt($prox_ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($prox_ch, CURLOPT_POSTFIELDS, $login_postfields_string);
+        curl_setopt($prox_ch, CURLOPT_SSL_VERIFYPEER, $this->verify_ssl);
+        curl_setopt($prox_ch, CURLOPT_SSL_VERIFYHOST, $this->verify_ssl);
+        curl_setopt($prox_ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($prox_ch, CURLOPT_RETURNTRANSFER,1); //return as a variable
+		curl_setopt($prox_ch, CURLOPT_POSTFIELDS, $login_postfields);
 		curl_setopt($prox_ch, CURLOPT_SSL_VERIFYPEER, $this->verify_ssl);
+
 
 		$login_ticket = curl_exec($prox_ch);
 		$login_request_info = curl_getinfo($prox_ch);
 
 		curl_close($prox_ch);
+
 		unset($prox_ch);
 		unset($login_postfields_string);
 
@@ -215,7 +218,9 @@ class PVE2_API {
 		curl_setopt($prox_ch, CURLOPT_HEADER, true);
 		curl_setopt($prox_ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($prox_ch, CURLOPT_COOKIE, "PVEAuthCookie=".$this->login_ticket['ticket']);
-		curl_setopt($prox_ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($prox_ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($prox_ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($prox_ch, CURLOPT_RETURNTRANSFER,1); //return as a variable
 
 		$action_response = curl_exec($prox_ch);
 
